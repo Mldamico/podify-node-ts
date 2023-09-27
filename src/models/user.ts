@@ -5,8 +5,8 @@ interface UserDocument {
   email: string;
   password: string;
   verified: boolean;
-  avatar?: { url: string, publicId: string }
-  tokens: string[]
+  avatar?: { url: string, publicId: string; };
+  tokens: string[];
   favorites: ObjectId[];
   followers: ObjectId[];
   followings: ObjectId[];
@@ -25,6 +25,6 @@ const userSchema = new Schema<UserDocument>({
   tokens: [String]
 }, {
   timestamps: true
-})
+});
 
-export default model("User", userSchema) as Model<UserDocument>
+export default model("User", userSchema) as Model<UserDocument>;
