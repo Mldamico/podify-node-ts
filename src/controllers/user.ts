@@ -9,6 +9,7 @@ import nodemailer from 'nodemailer';
 export const create = async (req: CreateUser, res: Response) => {
   const { email, password, name } = req.body;
 
+
   const user = await User.create({ name, email, password });
 
 
@@ -27,7 +28,6 @@ export const create = async (req: CreateUser, res: Response) => {
     owner: user._id,
     token
   });
-
 
   transport.sendMail({
     to: user.email,

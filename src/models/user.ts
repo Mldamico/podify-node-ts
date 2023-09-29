@@ -27,4 +27,6 @@ const userSchema = new Schema<UserDocument>({
   timestamps: true
 });
 
+
+
 export default model("User", userSchema) as Model<UserDocument>;
