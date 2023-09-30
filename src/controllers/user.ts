@@ -3,7 +3,7 @@ import passwordResetToken from "@/models/passwordResetToken";
 import User from "@/models/user";
 import { CreateUser, VerifyEmailRequest } from "@/types/user";
 import { generateToken } from "@/utils/helper";
-import { sendForgetPasswordLink, sendVerificationMail } from "@/utils/mail";
+import { sendForgetPasswordLink, sendVerificationMail, sendpasswordResetSuccessEmail } from "@/utils/mail";
 import { PASSWORD_RESET_LINK } from "@/utils/variables";
 import crypto from 'crypto';
 import { RequestHandler, Response } from "express";
@@ -108,16 +108,29 @@ export const generateForgetPasswordLink: RequestHandler = async (req, res: Respo
 
 };
 
+export const grantValid: RequestHandler = async (req, res: Response) => {
+  res.json({ valid: true });
 
-export const isValidPasswordResetToken: RequestHandler = async (req, res: Response) => {
-  const { token, userId } = req.body;
+};
 
-  const resetToken = await passwordResetToken.findOne({ owner: userId });
-  if (!resetToken) return res.status(403).json({ error: 'Unauthorized. Invalid token.' });
+export const updatePassword: RequestHandler = async (req, res: Response) => {
+  const { password, userId } = req.body;
 
-  const matched = await resetToken.compareToken(token);
-  if (!matched) return res.status(403).json({ error: 'Unauthorized. Invalid token.' });
+  const user = await User.findById(userId);
 
-  res.json({ message: "Your token is valid." });
+  if (!user) return res.status(403).json({ error: "Unauthorized access!" });
+
+  const matched = await user.comparePassword(password);
+
+  if (matched) return res.status(422).json({ error: "The new password must be different than previous" });
+
+  user.password = password;
+  await user.save();
+
+  await passwordResetToken.findOneAndDelete({ owner: user._id });
+
+  sendpasswordResetSuccessEmail(user.name, user.email);
+
+  res.json({ message: "Password resets successfully" });
 
 };
