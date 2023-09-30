@@ -3,7 +3,7 @@ import passwordResetToken from "@/models/passwordResetToken";
 import User from "@/models/user";
 import { CreateUser, VerifyEmailRequest } from "@/types/user";
 import { generateToken } from "@/utils/helper";
-import { sendVerificationMail } from "@/utils/mail";
+import { sendForgetPasswordLink, sendVerificationMail } from "@/utils/mail";
 import { PASSWORD_RESET_LINK } from "@/utils/variables";
 import crypto from 'crypto';
 import { RequestHandler, Response } from "express";
@@ -88,7 +88,12 @@ export const generateForgetPasswordLink: RequestHandler = async (req, res: Respo
 
   if (!user) return res.status(404).json({ error: "Account not found!" });
 
+  await passwordResetToken.findOneAndDelete({
+    owner: user._id
+  });
+
   const token = crypto.randomBytes(36).toString('hex');
+
 
   await passwordResetToken.create({
     owner: user._id,
@@ -97,7 +102,8 @@ export const generateForgetPasswordLink: RequestHandler = async (req, res: Respo
 
   const resetLink = `${PASSWORD_RESET_LINK}?token=${token}&userId=${user._id}`;
 
+  sendForgetPasswordLink({ email, link: resetLink });
 
-  res.json({ resetLink });
+  res.json({ message: "Check your registered mail." });
 
 };

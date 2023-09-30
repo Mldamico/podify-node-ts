@@ -53,3 +53,39 @@ export const sendVerificationMail = async (token: string, profile: Profile) => {
     ]
   });
 };
+
+interface Options {
+  email: string;
+  link: string;
+}
+
+export const sendForgetPasswordLink = async (options: Options) => {
+  const transport = generateMailTransporter();
+  const { email, link } = options;
+
+  transport.sendMail({
+    to: email,
+    from: VERIFICATION_EMAIL,
+    subject: 'Reset Password',
+    html: generateTemplate({
+      title: "Recover Password",
+      message: `We just received a request that you forget your password. Please use the link below and create a new password.`,
+      logo: "cid:logo",
+      banner: "cid:forget_password",
+      link,
+      btnTitle: "Reset Password"
+    }),
+    attachments: [
+      {
+        filename: "logo.png",
+        path: path.join(__dirname, "../mail/logo.png"),
+        cid: "logo"
+      },
+      {
+        filename: "forget_password.png",
+        path: path.join(__dirname, "../mail/forget_password.png"),
+        cid: "forget_password"
+      },
+    ]
+  });
+};
