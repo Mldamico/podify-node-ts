@@ -18,6 +18,5 @@ export const EmailVerificationBody = yup.object().shape({
       return value;
     }
     return "";
-
   }).required("Invalid userId")
 });

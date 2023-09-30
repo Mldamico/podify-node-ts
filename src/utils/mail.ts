@@ -26,10 +26,6 @@ interface Profile {
 export const sendVerificationMail = async (token: string, profile: Profile) => {
   const transport = generateMailTransporter();
   const { name, email, userId } = profile;
-  await EmailVerificationToken.create({
-    owner: userId,
-    token
-  });
 
   transport.sendMail({
     to: email,
