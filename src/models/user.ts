@@ -34,7 +34,7 @@ const userSchema = new Schema<UserDocument, {}, Methods>({
 
 
 userSchema.pre('save', async function (next) {
-  if (this.isModified("token")) {
+  if (this.isModified("password")) {
     this.password = await hash(this.password, 10);
   }
   next();
