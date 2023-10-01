@@ -1,5 +1,24 @@
 import passwordResetToken from "@/models/passwordResetToken";
+import User from "@/models/user";
+import { JWT_SECRET } from "@/utils/variables";
 import { RequestHandler } from "express";
+import { JwtPayload, verify } from "jsonwebtoken";
+
+declare global {
+  namespace Express {
+    interface Request {
+      user: {
+        id: any;
+        name: string;
+        email: string;
+        verified: boolean;
+        avatar?: string;
+        followers: number;
+        followings: number;
+      };
+    }
+  }
+}
 
 export const isValidPasswordResetToken: RequestHandler = async (req, res, next) => {
   const { token, userId } = req.body;
@@ -12,4 +31,29 @@ export const isValidPasswordResetToken: RequestHandler = async (req, res, next) 
 
   next();
 
+};
+
+export const mustAuth: RequestHandler = async (req, res, next) => {
+  const { authorization } = req.headers;
+  const token = authorization?.split('Bearer ')[1];
+
+  if (!token) return res.json(403).json({ error: "Unauthorized request!" });
+  const payload = verify(token, JWT_SECRET) as JwtPayload;
+
+  if (!payload) return res.json(403).json({ error: "Unauthorized request!" });
+
+  const id = payload.userId;
+  const user = await User.findOne({ _id: id, tokens: token });
+  if (!user) return res.json(403).json({ error: "Unauthorized request!" });
+  req.user = {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    verified: user.verified,
+    avatar: user.avatar?.url,
+    followers: user.followers.length,
+    followings: user.followings.length
+
+  };
+  next();
 };
