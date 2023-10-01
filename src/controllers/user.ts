@@ -155,10 +155,6 @@ export const singIn: RequestHandler = async (req, res: Response) => {
 
   await user.save();
 
-  res.json({ profile: { id: user._id, name: user.name, email: user.email, verified: user.verified, avatar: user.avatar?.url, followers: user.followers.length, followings: user.followings.length }, token });
-
-
-
-
+  return res.json({ profile: { id: user._id, name: user.name, email: user.email, verified: user.verified, avatar: user.avatar?.url, followers: user.followers.length, followings: user.followings.length }, token });
 
 };
