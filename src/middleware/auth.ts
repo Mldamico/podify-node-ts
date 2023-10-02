@@ -4,21 +4,6 @@ import { JWT_SECRET } from "@/utils/variables";
 import { RequestHandler } from "express";
 import { JwtPayload, verify } from "jsonwebtoken";
 
-declare global {
-  namespace Express {
-    interface Request {
-      user: {
-        id: any;
-        name: string;
-        email: string;
-        verified: boolean;
-        avatar?: string;
-        followers: number;
-        followings: number;
-      };
-    }
-  }
-}
 
 export const isValidPasswordResetToken: RequestHandler = async (req, res, next) => {
   const { token, userId } = req.body;

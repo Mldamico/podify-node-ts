@@ -1,11 +1,9 @@
 import { create, generateForgetPasswordLink, grantValid, sendReverificationToken, singIn, updatePassword, verifyEmail } from '@/controllers/user';
 import { isValidPasswordResetToken, mustAuth } from '@/middleware/auth';
 import { validate } from '@/middleware/validator';
-import User from '@/models/user';
 import { CreateUserSchema, SignInValidationSchema, TokenAndIdValidation, UpdatePasswordSchema } from '@/utils/validationSchema';
-import { JWT_SECRET } from '@/utils/variables';
 import { Router } from 'express';
-import { JwtPayload, verify } from 'jsonwebtoken';
+import formidable from 'formidable';
 
 const router = Router();
 
@@ -18,5 +16,13 @@ router.post('/update-password', validate(UpdatePasswordSchema), isValidPasswordR
 router.post('/sign-in', validate(SignInValidationSchema), singIn);
 router.get('/is-auth', mustAuth, (req, res) => {
   return res.json({ profile: req.user });
+});
+
+router.post('/update-profile', (req, res) => {
+  if (!req.headers["content-type"]?.startsWith("multipart/form-data")) return res.status(422).json({ error: "Error with content type header" });
+  const form = formidable();
+  form.parse(req, (err, fields, files) => {
+    res.json({ uploaded: true });
+  });
 });
 export default router;
