@@ -9,7 +9,9 @@ import crypto from 'crypto';
 import { RequestHandler, Response } from "express";
 import { isValidObjectId } from "mongoose";
 import jwt from 'jsonwebtoken';
-
+import { RequestWithFiles } from "@/middleware/fileParser";
+import cloudinary from "@/cloud";
+import formidable from "formidable";
 
 export const create = async (req: CreateUser, res: Response) => {
   const { email, password, name } = req.body;
@@ -156,5 +158,47 @@ export const singIn: RequestHandler = async (req, res: Response) => {
   await user.save();
 
   return res.json({ profile: { id: user._id, name: user.name, email: user.email, verified: user.verified, avatar: user.avatar?.url, followers: user.followers.length, followings: user.followings.length }, token });
+
+};
+
+
+
+
+export const updateProfile: RequestHandler = async (req: RequestWithFiles, res: Response) => {
+  const { name } = req.body;
+  const avatar = req.files?.avatar;
+
+
+  const user = await User.findById(req.user.id);
+  if (!user) throw new Error("something went wrong, user not found!");
+
+  if (typeof name[0] !== 'string') return res.status(422).json({ error: "Invalid name" });
+
+  if (name[0].trim().length < 3) return res.status(422).json({ error: "Invalid name" });
+
+  user.name = name[0];
+
+  if (avatar && avatar[0]) {
+    if (user.avatar?.publicId) {
+      await cloudinary.uploader.destroy(user.avatar?.publicId);
+    }
+    try {
+      const { secure_url, public_id } = await cloudinary.uploader.upload(avatar[0].filepath, {
+        width: 300,
+        height: 300,
+        crop: "thumb",
+        gravity: "face"
+      });
+      user.avatar = {
+        url: secure_url,
+        publicId: public_id
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  await user.save();
+  res.json({ avatar: user.avatar });
 
 };

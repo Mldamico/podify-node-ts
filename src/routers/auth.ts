@@ -1,4 +1,4 @@
-import { create, generateForgetPasswordLink, grantValid, sendReverificationToken, singIn, updatePassword, verifyEmail } from '@/controllers/user';
+import { create, generateForgetPasswordLink, grantValid, sendReverificationToken, singIn, updatePassword, updateProfile, verifyEmail } from '@/controllers/user';
 import { isValidPasswordResetToken, mustAuth } from '@/middleware/auth';
 import { validate } from '@/middleware/validator';
 import { CreateUserSchema, SignInValidationSchema, TokenAndIdValidation, UpdatePasswordSchema } from '@/utils/validationSchema';
@@ -6,6 +6,7 @@ import { Router } from 'express';
 import formidable from 'formidable';
 import path from 'path';
 import fs from 'fs';
+import fileParser, { RequestWithFiles } from '@/middleware/fileParser';
 
 const router = Router();
 
@@ -20,26 +21,5 @@ router.get('/is-auth', mustAuth, (req, res) => {
   return res.json({ profile: req.user });
 });
 
-router.post('/update-profile', async (req, res) => {
-  if (!req.headers["content-type"]?.startsWith("multipart/form-data")) return res.status(422).json({ error: "Error with content type header" });
-
-  const dir = path.join(__dirname, "../public/profiles");
-
-  try {
-    await fs.readdirSync(dir);
-  } catch (error) {
-    await fs.mkdirSync(dir);
-  }
-
-  const form = formidable({
-    uploadDir: dir,
-    filename(name, ext, part, form) {
-      return Date.now() + "_" + part.originalFilename;
-    }
-  });
-
-  form.parse(req, (err, fields, files) => {
-    res.json({ uploaded: true });
-  });
-});
+router.post('/update-profile', mustAuth, fileParser, updateProfile);
 export default router;
