@@ -1,3 +1,4 @@
+import { UserDocument } from "@/models/user";
 
 
 export const generateToken = (length = 6) => {
@@ -11,7 +12,7 @@ export const generateToken = (length = 6) => {
   return otp;
 };
 
-export const formatProfile = (user: any) => {
+export const formatProfile = (user: UserDocument) => {
   return {
     id: user._id,
     name: user.name,

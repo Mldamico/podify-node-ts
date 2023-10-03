@@ -1,4 +1,4 @@
-import { create, generateForgetPasswordLink, grantValid, sendProfile, sendReverificationToken, singIn, updatePassword, updateProfile, verifyEmail } from '@/controllers/user';
+import { create, generateForgetPasswordLink, grantValid, logout, sendProfile, sendReverificationToken, singIn, updatePassword, updateProfile, verifyEmail } from '@/controllers/auth';
 import { isValidPasswordResetToken, mustAuth } from '@/middleware/auth';
 import { validate } from '@/middleware/validator';
 import { CreateUserSchema, SignInValidationSchema, TokenAndIdValidation, UpdatePasswordSchema } from '@/utils/validationSchema';
@@ -20,4 +20,5 @@ router.post('/sign-in', validate(SignInValidationSchema), singIn);
 router.get('/is-auth', mustAuth, sendProfile);
 
 router.post('/update-profile', mustAuth, fileParser, updateProfile);
+router.post('/logout', mustAuth, logout);
 export default router;
