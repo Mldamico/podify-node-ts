@@ -7,6 +7,22 @@ import { Router } from "express";
 
 const router = Router();
 
-router.post("/create", mustAuth, isVerified, fileParser, validate(AudioValidationSchema), createAudio);
+router.post(
+  "/create",
+  mustAuth,
+  isVerified,
+  fileParser,
+  validate(AudioValidationSchema),
+  createAudio
+);
+
+router.patch(
+  "/:audioId",
+  mustAuth,
+  isVerified,
+  fileParser,
+  validate(AudioValidationSchema),
+  createAudio
+);
 
 export default router;
