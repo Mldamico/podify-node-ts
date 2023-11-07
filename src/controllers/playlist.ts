@@ -2,6 +2,7 @@ import Audio from "@/models/audio";
 import Playlists from "@/models/playlists";
 import { CreatePlaylistRequest, UpdatePlaylistRequest } from "@/types/audio";
 import { RequestHandler } from "express";
+import { isValidObjectId } from "mongoose";
 
 export const createPlaylist: RequestHandler = async (
   req: CreatePlaylistRequest,
@@ -65,4 +66,41 @@ export const updatePlaylist: RequestHandler = async (
       visibility: playlist.visibility,
     },
   });
+};
+
+export const removePlaylist: RequestHandler = async (
+  req: UpdatePlaylistRequest,
+  res
+) => {
+  const { playlistId, resId, all } = req.query;
+
+  if (!isValidObjectId(playlistId))
+    return res.status(422).json({ error: "Invalid playlistId" });
+
+  if (all === "yes") {
+    const playlist = await Playlists.findOneAndDelete({
+      _id: playlistId,
+      owner: req.user.id,
+    });
+
+    if (!playlist) return res.status(404).json({ error: "Playlist not found" });
+  }
+
+  if (resId) {
+    if (!isValidObjectId(resId))
+      return res.status(422).json({ error: "Invalid audio Id" });
+
+    const playlist = await Playlists.findOneAndUpdate(
+      {
+        _id: playlistId,
+        owner: req.user.id,
+      },
+      {
+        $pull: { items: resId },
+      }
+    );
+    if (!playlist) return res.status(404).json({ error: "Playlist not found" });
+  }
+
+  res.json({ success: true });
 };
