@@ -30,4 +30,6 @@ router.patch(
 
 router.delete("/", mustAuth, removePlaylist);
 
+router.get("/by-profile", mustAuth, getPlaylistByProfile);
+
 export default router;
