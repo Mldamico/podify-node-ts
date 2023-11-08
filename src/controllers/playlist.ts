@@ -109,10 +109,17 @@ export const getPlaylistByProfile: RequestHandler = async (
   req: UpdatePlaylistRequest,
   res
 ) => {
+  const { pageNumber = "0", limit = "10" } = req.query as {
+    pageNumber: string;
+    limit: string;
+  };
   const data = await Playlists.find({
     owner: req.user.id,
     visibility: { $ne: "auto" },
-  }).sort("-createdAt");
+  })
+    .skip(+pageNumber * +limit)
+    .limit(+limit)
+    .sort("-createdAt");
 
   const playlist = data.map((item) => {
     return {
