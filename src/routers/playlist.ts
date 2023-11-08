@@ -1,5 +1,7 @@
 import {
   createPlaylist,
+  getAudios,
+  getPlaylistByProfile,
   removePlaylist,
   updatePlaylist,
 } from "@/controllers/playlist";
@@ -31,5 +33,6 @@ router.patch(
 router.delete("/", mustAuth, removePlaylist);
 
 router.get("/by-profile", mustAuth, getPlaylistByProfile);
+router.get("/:playlistId", mustAuth, getAudios);
 
 export default router;

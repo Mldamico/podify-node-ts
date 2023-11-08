@@ -1,6 +1,10 @@
 import Audio from "@/models/audio";
 import Playlists from "@/models/playlists";
-import { CreatePlaylistRequest, UpdatePlaylistRequest } from "@/types/audio";
+import {
+  CreatePlaylistRequest,
+  PopulateFavList,
+  UpdatePlaylistRequest,
+} from "@/types/audio";
 import { RequestHandler } from "express";
 import { isValidObjectId } from "mongoose";
 
@@ -131,4 +135,42 @@ export const getPlaylistByProfile: RequestHandler = async (
   });
 
   res.json({ playlist });
+};
+
+export const getAudios: RequestHandler = async (
+  req: UpdatePlaylistRequest,
+  res
+) => {
+  const { playlistId } = req.params;
+  if (!isValidObjectId(playlistId))
+    return res.status(422).json({ error: "Invalid playlist ID" });
+
+  const playlist = await Playlists.findOne({
+    owner: req.user.id,
+    _id: playlistId,
+  }).populate<{ items: PopulateFavList }>({
+    path: "items",
+    populate: { path: "owner", select: "name" },
+  });
+
+  if (!playlist) return res.status(404).json({ error: "Playlist not found" });
+
+  const audios = playlist.items.map((item) => {
+    return {
+      id: item._id,
+      title: item.title,
+      category: item.category,
+      file: item.file.url,
+      poster: item.poster?.url,
+      owner: { name: item.owner.name, id: item.owner._id },
+    };
+  });
+
+  return res.json({
+    list: {
+      id: playlist._id,
+      title: playlist.title,
+      audios,
+    },
+  });
 };
