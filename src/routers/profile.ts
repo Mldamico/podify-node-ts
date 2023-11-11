@@ -1,3 +1,4 @@
+import { updateFollower } from "@/controllers/follower";
 import { mustAuth } from "@/middleware/auth";
 import { Router } from "express";
 
