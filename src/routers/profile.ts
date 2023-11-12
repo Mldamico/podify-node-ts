@@ -6,4 +6,5 @@ const router = Router();
 
 router.post("/update-follower/profileId", mustAuth, updateFollower);
 router.get("/uploads", mustAuth, getUploads);
+router.get("/uploads/:profileId", getPublicUploads);
 export default router;
