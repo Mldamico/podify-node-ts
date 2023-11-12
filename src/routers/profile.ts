@@ -1,4 +1,5 @@
 import {
+  getPublicPlaylist,
   getPublicProfile,
   getPublicUploads,
   getUploads,
@@ -13,4 +14,5 @@ router.post("/update-follower/profileId", mustAuth, updateFollower);
 router.get("/uploads", mustAuth, getUploads);
 router.get("/uploads/:profileId", getPublicUploads);
 router.get("/info/uploads/:profileId", getPublicProfile);
+router.get("/paylist/:profileId", getPublicPlaylist);
 export default router;

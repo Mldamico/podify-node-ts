@@ -1,4 +1,5 @@
 import Audio, { AudioDocument } from "@/models/audio";
+import Playlists from "@/models/playlists";
 import User from "@/models/user";
 import { paginationQuery } from "@/types/misc";
 import { RequestHandler } from "express";
@@ -111,5 +112,32 @@ export const getPublicProfile: RequestHandler = async (req, res) => {
       followers: user.followers.length,
       avatar: user.avatar?.url,
     },
+  });
+};
+
+export const getPublicPlaylist: RequestHandler = async (req, res) => {
+  const { pageNo = "0", limit = "20" } = req.query as paginationQuery;
+  const { profileId } = req.params;
+
+  if (!isValidObjectId(profileId))
+    return res.status(422).json({ error: "Invalid profile id provided" });
+
+  const playlists = await Playlists.find({
+    _id: profileId,
+    visibility: "public",
+  })
+    .skip(parseInt(pageNo) * parseInt(limit))
+    .limit(parseInt(limit))
+    .sort("-createdAt");
+
+  if (!playlists) return res.json({ playlists: [] });
+
+  res.json({
+    playlists: playlists.map((playlist) => ({
+      id: playlist._id,
+      title: playlist.title,
+      itemsCount: playlist.items.length,
+      visibility: playlist.visibility,
+    })),
   });
 };
