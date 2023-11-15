@@ -153,3 +153,65 @@ export const getAllHistories: RequestHandler = async (req, res) => {
 
   res.json({ histories });
 };
+
+export const getRecentlyPlayed: RequestHandler = async (req, res) => {
+  const match = { $match: { owner: req.user.id } };
+  const audios = await History.aggregate([
+    match,
+    {
+      $project: {
+        myHistory: {
+          $slice: ["$all", 10],
+        },
+      },
+    },
+    {
+      $project: {
+        histories: {
+          $sortArray: {
+            input: "$myHistory",
+            sortBy: { date: -1 },
+          },
+        },
+      },
+    },
+    { $unwind: { path: "$histories", includeArrayIndex: "index" } },
+    {
+      $lookup: {
+        from: "audios",
+        localField: "histories.audio",
+        foreignField: "_id",
+        as: "audioInfo",
+      },
+    },
+    { $unwind: "$audioInfo" },
+    {
+      $lookup: {
+        from: "users",
+        localField: "audioInfo.owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+    {
+      $project: {
+        _id: 0,
+        id: "$audioInfo._id",
+        date: "$histories.date",
+        progress: "$histories.progress",
+        title: "$audioInfo.title",
+        about: "$audioInfo.about",
+        poster: "$audioInfo.poster.url",
+        file: "$audioInfo.file.url",
+        category: "$audioInfo.category",
+        owner: {
+          id: "$owner._id",
+          name: "$owner.username",
+        },
+      },
+    },
+  ]);
+
+  res.json({ audios });
+};
