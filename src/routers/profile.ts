@@ -2,10 +2,11 @@ import {
   getPublicPlaylist,
   getPublicProfile,
   getPublicUploads,
+  getRecommendedByProfile,
   getUploads,
   updateFollower,
 } from "@/controllers/profile";
-import { mustAuth } from "@/middleware/auth";
+import { isAuth, mustAuth } from "@/middleware/auth";
 import { Router } from "express";
 
 const router = Router();
@@ -15,4 +16,5 @@ router.get("/uploads", mustAuth, getUploads);
 router.get("/uploads/:profileId", getPublicUploads);
 router.get("/info/uploads/:profileId", getPublicProfile);
 router.get("/paylist/:profileId", getPublicPlaylist);
+router.get("/recommended", isAuth, getRecommendedByProfile);
 export default router;
