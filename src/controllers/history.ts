@@ -1,4 +1,5 @@
 import History, { historyType } from "@/models/history";
+import { paginationQuery } from "@/types/misc";
 import { RequestHandler } from "express";
 
 export const updateHistory: RequestHandler = async (req, res) => {
@@ -71,7 +72,7 @@ export const updateHistory: RequestHandler = async (req, res) => {
     });
   }
 
-  res.json(sameDayHistory);
+  res.json({ success: true });
 };
 
 export const removeHistory: RequestHandler = async (req, res) => {
@@ -94,4 +95,61 @@ export const removeHistory: RequestHandler = async (req, res) => {
   );
 
   res.json({ success: true });
+};
+
+export const getAllHistories: RequestHandler = async (req, res) => {
+  const { limit = "20", pageNo = "0" } = req.query as paginationQuery;
+  const histories = await History.aggregate([
+    { $match: { owner: req.user.id } },
+    {
+      $project: {
+        all: {
+          $slice: ["$all", +limit * +pageNo, +limit],
+        },
+      },
+    },
+    { $unwind: "$all" },
+    {
+      $lookup: {
+        from: "audios",
+        localField: "all.audio",
+        foreignField: "_id",
+        as: "audioInfo",
+      },
+    },
+    { $unwind: "$audioInfo" },
+    {
+      $project: {
+        _id: 0,
+        id: "$all._id",
+        audioId: "$audioInfo._id",
+        date: "$all.date",
+        title: "$audioInfo.title",
+      },
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$date",
+          },
+          audios: { $push: "$$ROOT" },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        id: "$id",
+        date: "$_id",
+        audios: "$$ROOT.audios",
+      },
+    },
+    {
+      $sort: { date: -1 },
+    },
+  ]);
+
+  res.json({ histories });
 };
